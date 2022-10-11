@@ -1,10 +1,12 @@
 name: 'Build'
 description: 'Build app from dockerfile'
-# inputs:
-#   who-to-greet:  # id of input
-#     description: 'Who to greet'
-#     required: true
-#     default: 'World'
+inputs:
+  aws-access-key-id:  # id of input
+    description: 'AWS_ACCESS_KEY_ID'
+    required: true
+  aws-secret-access-key:  # id of input
+    description: 'AWS_SECRET_ACCESS_KEY'
+    required: true
 # outputs:
 #   random-number:
 #     description: "Random number"
@@ -12,8 +14,15 @@ description: 'Build app from dockerfile'
 runs:
   using: "composite"
   steps:
+    ## Clone do código
     - name: Check out code
       uses: actions/checkout@v2
-
-    - run: ls
-      shell: bash
+    
+    ## Configurando as credenciais AWS
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ inputs.aws-access-key-id }}
+        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+        aws-region: sa-east-1
+        mask-aws-account-id: 'no'
