@@ -7,10 +7,32 @@ inputs:
   aws-secret-access-key:  # id of input
     description: 'AWS_SECRET_ACCESS_KEY'
     required: true
-# outputs:
-#   random-number:
-#     description: "Random number"
-#     value: ${{ steps.random-number-generator.outputs.random-number }}
+  aws-region:  # id of input
+    description: 'aws-region'
+    required: true
+  ecr-repository:  # id of input
+    description: 'ecr-repository'
+    required: true
+  image-tag:  # id of input
+    description: 'image-tag'
+    required: true
+outputs:
+  registry:
+    description: "ECR Registry"
+    value: ${{ steps.login-ecr.outputs.registry }}
+  user:
+    description: "ECR User"
+    value: ${{ steps.login-ecr.outputs.docker_username_071032557399_dkr_ecr_sa_east_1_amazonaws_com }}
+  pass:
+    description: "ECR Password"
+    value: ${{ steps.ecr.outputs.token }}
+  imageRepo:
+    description: "ECR Image Repository"
+    value: ${{ steps.build_image.outputs.image-repo }}
+  imageTag:
+    description: "Image TAG"
+    value: ${{ steps.build_image.outputs.image-tag }}
+
 runs:
   using: "composite"
   steps:
@@ -24,5 +46,32 @@ runs:
       with:
         aws-access-key-id: ${{ inputs.aws-access-key-id }}
         aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
-        aws-region: sa-east-1
+        aws-region: ${{ inputs.aws-region }}
         mask-aws-account-id: 'no'
+    
+    ## Fazendo login no AWS ECR
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    ## Pegando token de login no ECR para utilizar no job "deploy"
+    - name: Get token to login to Amazon ECR
+      id: ecr
+      uses: PhutureCorp/ecr-login-token@v0.8.0
+      with:
+        registry: ${{ steps.login-ecr.outputs.registry }}
+        username: ${{ inputs.aws-access-key-id }}
+        password: ${{ inputs.aws-secret-access-key }}
+    
+    ## Fazendo build da imagem da aplicação e armazenando no ECR
+    - name: Build, tag, and push image to Amazon ECR
+      id: build_image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: ${{ inputs.ecr-repository }}
+        IMAGE_TAG: ${{ inputs.image-tag }}
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "::set-output name=image-repo::$ECR_REGISTRY/$ECR_REPOSITORY"
+        echo "::set-output name=image-tag::$IMAGE_TAG"
