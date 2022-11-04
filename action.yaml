@@ -22,6 +22,10 @@ inputs:
   pypi-password:
     description: 'PyPi password'
     required: true
+  microservice-state:
+    description: 'State'
+    required: false
+    default: ''
 outputs:
   registry:
     description: "ECR Registry"
@@ -78,10 +82,11 @@ runs:
         IMAGE_TAG: ${{ inputs.image-tag }}
         PYPI_USER: ${{ inputs.pypi-user }}
         PYPI_PASSWORD: ${{ inputs.pypi-password }}
+        MICROSERVICE_STATE: ${{ inputs.microservice-state }}
       shell: bash
       run: |
         aws ecr describe-repositories --repository-names $ECR_REPOSITORY || aws ecr create-repository --image-scanning-configuration scanOnPush=true --repository-name $ECR_REPOSITORY
-        docker build --build-arg PYPI_USER=$PYPI_USER --build-arg PYPI_PASSWORD=$PYPI_PASSWORD -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build --build-arg PYPI_USER=$PYPI_USER --build-arg PYPI_PASSWORD=$PYPI_PASSWORD --build-arg STATE=$MICROSERVICE_STATE -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image-repo::$ECR_REGISTRY/$ECR_REPOSITORY"
         echo "::set-output name=image-tag::$IMAGE_TAG"
