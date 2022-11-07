@@ -86,6 +86,7 @@ runs:
       shell: bash
       run: |
         aws ecr describe-repositories --repository-names $ECR_REPOSITORY || aws ecr create-repository --image-scanning-configuration scanOnPush=true --repository-name $ECR_REPOSITORY
+        aws ecr set-repository-policy --repository-name $ECR_REPOSITORY --policy-text file://tmp/ecr-repository-policy.json
         docker build --build-arg PYPI_USER=$PYPI_USER --build-arg PYPI_PASSWORD=$PYPI_PASSWORD --build-arg STATE=$MICROSERVICE_STATE -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image-repo::$ECR_REGISTRY/$ECR_REPOSITORY"
