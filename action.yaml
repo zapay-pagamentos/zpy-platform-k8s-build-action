@@ -18,18 +18,6 @@ inputs:
     required: false
     default: ''
 outputs:
-  registry:
-    description: "ECR Registry"
-    value: ${{ steps.login-ecr.outputs.registry }}
-  user:
-    description: "ECR User"
-    value: ${{ steps.login-ecr.outputs.docker_username_071032557399_dkr_ecr_sa_east_1_amazonaws_com }}
-  pass:
-    description: "ECR Password"
-    value: ${{ steps.ecr.outputs.token }}
-  imageRepo:
-    description: "ECR Image Repository"
-    value: ${{ steps.build_image.outputs.image-repo }}
   imageTag:
     description: "Image TAG"
     value: ${{ steps.build_image.outputs.image-tag }}
@@ -44,14 +32,7 @@ runs:
     ## Fazendo login no AWS ECR
     - name: Login to Amazon ECR
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-
-    ## Pegando token de login no ECR para utilizar no job "deploy"
-    - name: Get token to login to Amazon ECR
-      id: ecr
-      uses: PhutureCorp/ecr-login-token@v2
-      with:
-        registry: ${{ steps.login-ecr.outputs.registry }}
+      uses: aws-actions/amazon-ecr-login@v2
     
     ## Fazendo build da imagem da aplicação e armazenando no ECR
     - name: Build, tag, and push image to Amazon ECR
