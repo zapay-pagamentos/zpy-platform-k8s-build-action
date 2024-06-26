@@ -21,6 +21,24 @@ outputs:
   imageTag:
     description: "Image TAG"
     value: ${{ steps.build_image.outputs.image-tag }}
+  ## Remove when ArgoCD only
+  registry:
+    description: "ECR Registry"
+    value: ${{ steps.login-ecr.outputs.registry }}
+  ## Remove when ArgoCD only
+  imageRepo:
+    description: "ECR Image Repository"
+    value: ${{ steps.build_image.outputs.image-repo }}
+  ## Remove when ArgoCD only
+  user:
+    description: "ECR User"
+    value: ${{ steps.login-ecr.outputs.docker_username_071032557399_dkr_ecr_sa_east_1_amazonaws_com }}
+  ## Remove when ArgoCD only
+  pass:
+    description: "ECR Pass"
+    value: ${{ steps.login-ecr.outputs.docker_password_071032557399_dkr_ecr_sa_east_1_amazonaws_com }}
+
+
 
 runs:
   using: "composite"
