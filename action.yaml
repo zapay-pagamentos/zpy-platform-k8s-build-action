@@ -4,6 +4,9 @@ inputs:
   ecr-repository:  # id of input
     description: 'ECR repository'
     required: true
+  ecr-repository:  # id of input
+    description: 'ECR registry'
+    required: true
   image-tag:  # id of input
     description: 'Image TAG'
     required: true
@@ -21,24 +24,6 @@ outputs:
   imageTag:
     description: "Image TAG"
     value: ${{ steps.build_image.outputs.image-tag }}
-  ## Remove when ArgoCD only
-  registry:
-    description: "ECR Registry"
-    value: ${{ steps.login-ecr.outputs.registry }}
-  ## Remove when ArgoCD only
-  imageRepo:
-    description: "ECR Image Repository"
-    value: ${{ steps.build_image.outputs.image-repo }}
-  ## Remove when ArgoCD only
-  user:
-    description: "ECR User"
-    value: ${{ steps.login-ecr.outputs.docker_username_071032557399_dkr_ecr_sa_east_1_amazonaws_com }}
-  ## Remove when ArgoCD only
-  pass:
-    description: "ECR Pass"
-    value: ${{ steps.login-ecr.outputs.docker_password_071032557399_dkr_ecr_sa_east_1_amazonaws_com }}
-
-
 
 runs:
   using: "composite"
@@ -51,14 +36,12 @@ runs:
     - name: Login to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
-      with:
-        mask-password: 'false'
     
     ## Fazendo build da imagem da aplicação e armazenando no ECR
     - name: Build, tag, and push image to Amazon ECR
       id: build_image
       env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REGISTRY: ${{ inputs.ecr-registry }}
         ECR_REPOSITORY: ${{ inputs.ecr-repository }}
         IMAGE_TAG: ${{ inputs.image-tag }}
         PYPI_USER: ${{ inputs.pypi-user }}
@@ -71,5 +54,4 @@ runs:
         aws ecr set-repository-policy --repository-name $ECR_REPOSITORY --policy-text file://ecr-repository-policy.json
         docker build --build-arg PYPI_USER=$PYPI_USER --build-arg PYPI_PASSWORD=$PYPI_PASSWORD --build-arg STATE=$MICROSERVICE_STATE -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        echo "::set-output name=image-repo::$ECR_REGISTRY/$ECR_REPOSITORY"
         echo "::set-output name=image-tag::$IMAGE_TAG"
