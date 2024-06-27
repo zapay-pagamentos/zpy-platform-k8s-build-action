@@ -4,7 +4,7 @@ inputs:
   ecr-repository:  # id of input
     description: 'ECR repository'
     required: true
-  ecr-repository:  # id of input
+  ecr-registry:  # id of input
     description: 'ECR registry'
     required: true
   image-tag:  # id of input
