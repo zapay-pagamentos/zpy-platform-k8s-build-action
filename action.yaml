@@ -55,4 +55,4 @@ runs:
         aws ecr set-repository-policy --repository-name $ECR_REPOSITORY --policy-text file://ecr-repository-policy.json
         docker build --build-arg PYPI_USER=$PYPI_USER --build-arg PYPI_PASSWORD=$PYPI_PASSWORD --build-arg STATE=$MICROSERVICE_STATE -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        echo "image-tag::$IMAGE_TAG" >> $GITHUB_OUTPUT
+        echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
